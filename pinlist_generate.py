@@ -2,7 +2,7 @@
 #
 # Created on: 09/28/2021
 #     Author: Anyka
-#      		  Phoebe Luo
+#             Phoebe Luo
 
 import xlrd
 import re
@@ -154,7 +154,6 @@ def checkending(string, num):
 
 # ----------------------------------Part 1. Function to extract Excel info for pinlist----------------------------------
 def getlist(num):
-def getlist(num):
     # list_total to hold all the function names extracted from Excel
     list_total = []
     # list1 to hold all the function names that are formatted
@@ -218,7 +217,7 @@ def getlist(num):
         else:
             print("Error: chart format not correct, I/O information not found for " + element)
     return list1
-    
+
 
 # ---------------------------------------Part 2. Function to write to seq sv file---------------------------------------
 def writeseqfile(list1, num):
@@ -230,7 +229,7 @@ def writeseqfile(list1, num):
     file.write("ifndef GPIO_" + xx + "_DOMAIN_SEQ__SV\n" + xx + "_DOMAIN_SEG__SV\n")
     file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
 
-    for function_name in lit1:
+    for function_name in list1:
         if function_name.find("_output") >= 0:
             # should be written in output format
             # get module name ("module_name")
@@ -284,15 +283,86 @@ def writetestfile(num):
 
 # ---------------------------------Part 4. Function to extract Excel info for interface---------------------------------
 def getinterfacelist(num):
+    # list_total to hold all the function names extracted from Excel
+    list_total = []
+
+    # 1. locate Func0 column and read all GPIO ports
+    data = xlrd.open_workbook(excel_path)
+    table = data.sheet_by_name("pin_list")
+
+    for col in range(table.ncols):
+        for row in range(table.nrows):
+            if table.cell_value(row, col) == "Func0" or table.cell_value(row, col) == "Func0\n":
+                func0_col = col
+            if table.cell_value(row, col) == "GPIO" + num + "(I/O)" and col == func0_col:
+                # locate the row and column number of GPIO(I/O)
+                row_loc = row
+                col_loc = col
+            elif table.cell_value(row, col) == "GPIO" + num + "(I/O)" and col != func0_col:
+                # the GPIO port is not under column Func0
+                return 0
+
+        # 2. update list with all the function names
+        list_total[:] = table.row_values(row_loc, col_loc + 1, col_loc + 12)
+        while list_total.count("") != 0:
+            list_total.remove("")
+
+        # 3. go through the list to identify I/O, change name format, and put into list1
+        for element in list_total:
+            if element.find("(i)") >= 0 or element.find("(I)") >= 0:
+                # delete I/O info and change to lower case
+                element = element[:len(element) - 3]
+                element = tolowercase(element)
+                # check if the name is function with width and put into corresponding lists
+                reformname(element, 0)
+            elif element.find("(o)") >= 0 or element.find("(O)") >= 0:
+                # delete I/O info and change to lower case
+                element = element[:len(element) - 3]
+                element = tolowercase(element)
+                # check if the name is function with width and put into corresponding lists
+                reformname(element, 1)
+            elif element.find("(i/o)") >= 0 or element.find("(I/O)") >= 0:
+                # delete I/O info and change to lower case
+                element = element[:len(element) - 5]
+                element = tolowercase(element)
+                # check if the name is function with width and put into corresponding lists
+                reformname(element, 0)
+                reformname(element, 1)
 
 
 # ------------------------------------Part 5. Function to write to interface sv file------------------------------------
 def writesvfile():
+    # 1. start writing to file for the task section
+    file = open(sv_path, "w+")
+    file.write(string_1)
+    for xx in func_norm_list:
+        file.write("task force_" + xx + "(bit level)\n" + "    force\n" + "endtask\n\n" + "task release_" + xx + "(bit level)\n" + "    release\n" + "endtask\n\n")
+
+    # if it is originally function with width, change to a different format
+    for xx in func_width_list:
+        file.write("task force_" + xx + "(int id,bit level)\n" + "    force\n" + "endtask\n\n" + "task release_" + xx + "(int id,bit level)\n" + "    release\n" + "endtask\n\n")
+    file.write(string_2)
+    print("interface file " + sv_path + "updated.")
 
 
 # --------------------------------------Part 6. Global strings to write to sv file--------------------------------------
-string_1 = ""
-string_2 = ""
+string_1 = """`ifndef PIN_MUX_INTERFACE__SV
+`define PIN_MUX_INTERFACE__SV
+
+interface pin_mux_interface();
+
+---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------
+
+"""
+string_2 = """  task force_bt_test_pin(int id, bit level);
+        bit [33:0] value;
+    
+---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------
+
+endinterface
+
+`endif    
+"""
 
 
 # -----------------------------------------------------Part 7. Main-----------------------------------------------------
