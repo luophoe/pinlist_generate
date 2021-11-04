@@ -222,10 +222,64 @@ def getlist(num):
 
 # ---------------------------------------Part 2. Function to write to seq sv file---------------------------------------
 def writeseqfile(list1, num):
+    # 1. get port number ("xx")
+    xx = fileportnum(num)
+
+    # 2. start writing to file for the function sectiom
+    file = open(seq_path, "w+")
+    file.write("ifndef GPIO_" + xx + "_DOMAIN_SEQ__SV\n" + xx + "_DOMAIN_SEG__SV\n")
+    file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+
+    for function_name in lit1:
+        if function_name.find("_output") >= 0:
+            # should be written in output format
+            # get module name ("module_name")
+            module_name = function_name[:len(function_name) - 1]
+
+            # if function has bit width, change the output text to different format
+            if module_name in width_list:
+                # module name with the format that has no digit
+                module_name_nodig = striplastsec(module_name)
+                module_name = checklastsec(module_name, 1)
+                file.write("    task " +function_name + ";\n" + "       wait_for_cpu(0);\n" + "       #100;\n\n" + "        p_sequencer.pin_mux_if[0].force_" + module_name + ", 1);\n" + "        #100;\n" + "        if (p_sequencer.gpio_if[0].pad_gpio_" + xx + " != 1)\n")
+                file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+
+            # if function does not have bit width, use the basic format
+            else:
+                file.write("    task " +function_name + ";\n" + "       wait_for_cpu(0);\n" + "       #100;\n\n" + "        p_sequencer.pin_mux_if[0].force_" + module_name + "_oe(1);\n\n" + "        p_sequencer.pin_mux_if[0].force_" + module_name + "_out(1);\n" + "        #100;\n")
+                file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+
+        elif function_name.find("_input") >= 0:
+            # should be written in input format
+            # get module name ("module_name")
+            module_name = function_name[:len(function_name - 6)]
+
+            # if function has bit width, change the output text to different format
+            if module_name in width_list:
+                # module name with the format that has no digit
+                module_name_nodig = striplastsec(module_name)
+                module_name = checklastsec(module_name, 1)
+                file.write("    task " + function_name + ";\n" + "       wait_for_cpu(0);\n" + "       #100;\n\n" + "        p_sequencer.pin_mux_if[0].force_pad_gpio_" + xx + "(1))\n" + "        #100;\n" + "        if (p_sequencer.pin_mux_if[0]" + module_name + " != 1)\n")
+                file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+
+            # if function does not have bit width, use the basic format
+            else:
+                file.write("    task " + function_name + ";\n" + "       wait_for_cpu(0);\n" + "       #100;\n\n" + "        p_sequencer.pin_mux_if[0].force_" + module_name + "_oe(0);\n\n" + "        p_sequencer.pin_mux_if[0].force_pad_gpio_" + xx + "(1);\n" + "        #100;\n")
+                file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+    file.write("endclass\n\n" + "`endif")
+    print("seq file " + seq_path + " updated.")
 
 
 # ---------------------------------------Part 3. Function to write to test sv file--------------------------------------
 def writetestfile(num):
+    # 1. get port number
+    xx = fileportnum(num)
+
+    # 2. start writing to file
+    file = open(test_path, "w+")
+    file.write("`ifdef GPIO_" + xx + "_DOMAIN_TEST__SV\n" + "`define GPIO_" + xx + "_DOMAINTEST__SV\n\n")
+    file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+    print("test file " + test_path + " updated.")
 
 
 # ---------------------------------Part 4. Function to extract Excel info for interface---------------------------------
