@@ -154,7 +154,71 @@ def checkending(string, num):
 
 # ----------------------------------Part 1. Function to extract Excel info for pinlist----------------------------------
 def getlist(num):
+def getlist(num):
+    # list_total to hold all the function names extracted from Excel
+    list_total = []
+    # list1 to hold all the function names that are formatted
+    list1 = []
 
+    # 1. get row and column number of designated port
+    data = xlrd.open_workbook(excel_path)
+    table = data.sheet_by_name("pin_list")
+    num = excelportnum(num)
+
+    for col in range(table.ncols):
+        for row in range(table.nrows):
+            if table.cell_value(row, col) == "Func0" or table.cell_value(row, col) == "Func0\n":
+                func0_col = col
+            if table.cell_value(row, col) == "GPIO" + num + "(I/O)" and col == func0_col:
+                # locate the row and column number of GPIO(I/O)
+                row_loc = row
+                col_loc = col
+            elif table.cell_value(row, col) == "GPIO" + num + "(I/O)" and col != func0_col:
+                # the GPIO port is not under column Func0
+                print("Error: chart format not correct, GPIO" + num + " is not found under Func0")
+                return 0
+
+    # 2. update list with all the function names
+    list_total[:] = table.row_values(row_loc, col_loc + 1, col_loc + 12)
+    while list_total.count("") != 0:
+        list_total.remove("")
+
+    # 3. go through the list to identify I/O, change name format, and put into list1
+    for element in list_total:
+        if element.find("(i)") >= 0 or element.find("(I)") >= 0:
+            # the names that go into list1
+            element = element[:len(element) - 3]
+            # change name format
+            element = tolowercase(element)
+            element = getbitwidth(element, 0)
+            func_element = listconcat(element, 0)
+            # add name to function name
+            list1.append(func_element)
+        elif element.find("(o)") >= 0 or element.find("(O)") >= 0:
+            # the names that go into list1
+            element = element[:len(element) - 3]
+            # change name format
+            element = tolowercase(element)
+            element = getbitwidth(element, 1)
+            func_element = listconcat(element, 1)
+            # add name to function name
+            list1.append(func_element)
+        elif element.find("(i/o)") >= 0 or element.find("(I/O)") >= 0:
+            # the names that go into list1
+            element = element[:len(element) - 5]
+            # change name format
+            element = tolowercase(element)
+            func_in_element = getbitwidth(element, 0)
+            func_out_element = getbitwidth(element, 1)
+            func_in_element = listconcat(func_in_element, 0)
+            func_out_element = listconcat(func_out_element, 1)
+            # add name to function name
+            list1.append(func_in_element)
+            list1.append(func_out_element)
+        else:
+            print("Error: chart format not correct, I/O information not found for " + element)
+    return list1
+    
 
 # ---------------------------------------Part 2. Function to write to seq sv file---------------------------------------
 def writeseqfile(list1, num):
