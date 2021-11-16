@@ -1,4 +1,4 @@
-# pinlist_generate.py
+# T5_pinlist_generate.py
 #
 # Created on: 09/28/2021
 #     Author: Anyka
