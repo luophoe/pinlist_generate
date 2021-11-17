@@ -37,12 +37,12 @@ def listconcat(string, num):
 # Function 3. for pinlist, change port number to the correct format for writing file
 def fileportnum(num):
     if len(num) == 1:
-        # if port number is a one digit int, add 0 to front to fit bit format
+        # if port number is a one digit int, add 0 to front to fit format
         num = "0" + num
     return num
 
 
-# Function 4. for pinlist, change port number to the port number to the correct format for reading Excel
+# Function 4. for pinlist, change port number to the correct format for reading Excel
 def excelportnum(num):
     if len(num) == 2 and num[0] == "0":
         # if port number is a one digit int written in two digit, remove 0 at front to fit format
@@ -226,14 +226,14 @@ def writeseqfile(list1, num):
 
     # 2. start writing to file for the function sectiom
     file = open(seq_path, "w+")
-    file.write("ifndef GPIO_" + xx + "_DOMAIN_SEQ__SV\n" + xx + "_DOMAIN_SEG__SV\n")
+    file.write("`ifndef GPIO_" + xx + "_DOMAIN_SEQ__SV\n" + "`define GPIO_" + xx + "_DOMAIN_SEG__SV\n")
     file.write("\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
 
     for function_name in list1:
         if function_name.find("_output") >= 0:
             # should be written in output format
             # get module name ("module_name")
-            module_name = function_name[:len(function_name) - 1]
+            module_name = function_name[:len(function_name) - 7]
 
             # if function has bit width, change the output text to different format
             if module_name in width_list:
@@ -251,7 +251,7 @@ def writeseqfile(list1, num):
         elif function_name.find("_input") >= 0:
             # should be written in input format
             # get module name ("module_name")
-            module_name = function_name[:len(function_name - 6)]
+            module_name = function_name[:len(function_name) - 6]
 
             # if function has bit width, change the output text to different format
             if module_name in width_list:
