@@ -49,7 +49,7 @@ def getpinmuxlist(num):
     # list_total to hold all the function names extracted from Excel
     list_total = []
 
-    # 1. get row amd column number of designated port
+    # 1. get row and column number of designated port
     data = xlrd.open_workbook(excel_path)
     table = data.sheet_by_name("pin_list")
     excel_num = excelportnum(num)
@@ -87,7 +87,7 @@ def getpinmuxlist(num):
         print("Error: chart format not correct, GPIO" + excel_num + " is not found in the Excel file")
         return 0
 
-    # 2, write the GPIO port info into file
+    # 2. write the GPIO port info into file
     if func_form == 1:
         writepinmuxfile(excel_num, num, 0, 1)
     else:
@@ -117,11 +117,11 @@ def getpinmuxlist(num):
             # strip the (I) or (O) part
             element = element[:len(element) - 3]
             # write to file
-            writepinmuxfile(0, num, 2)
+            writepinmuxfile(element, num, 2)
         else:
             print("Error: chart format not correct, I/O information not found for " + element)
 
-    # 5. write the final lines for the file
+    # 5. write the final lines of the file
     writepinmuxfile(0, num, 3)
     print("pin mux file " + pin_mux_v_path + "/TC-F-" + fileportnum(str(num)) + ".v" + " updated.")
 
@@ -131,7 +131,7 @@ def writepinmuxfile(string, num, form, func_form = 0):
     pin_mux_path = pin_mux_v_path + "/TC-F-" + fileportnum(str(num)) + ".v"
 
     # 2. start writing to file
-    # if file does not exisy, create and open the file
+    # if file does not exist, create and open the file
     if form == 0:
         print("pin mux file " + pin_mux_v_path + "/TC-F-" + fileportnum(str(num)) + ".v" + " created.")
         file = open(pin_mux_path, "w+")
