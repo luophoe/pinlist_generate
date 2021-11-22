@@ -113,4 +113,63 @@ def getpinmuxlist(num):
             element = element[:len(element) - 5]
             # write to file
             writepinmuxfile(element, num, 1)
-        elif element
+        elif element.find("(i)") >= 0 or element.find("(I)") >= 0 or element.find("(o)") >= 0 or element.find("(O)") >= 0:
+            # strip the (I) or (O) part
+            element = element[:len(element) - 3]
+            # write to file
+            writepinmuxfile(0, num, 2)
+        else:
+            print("Error: chart format not correct, I/O information not found for " + element)
+
+    # 5. write the final lines for the file
+    writepinmuxfile(0, num, 3)
+    print("pin mux file " + pin_mux_v_path + "/TC-F-" + fileportnum(str(num)) + ".v" + " updated.")
+
+# ------------------------------------------Part 3. Function to write to file-------------------------------------------
+def writepinmuxfile(string, num, form, func_form = 0):
+    # 1. get pin mux file path
+    pin_mux_path = pin_mux_v_path + "/TC-F-" + fileportnum(str(num)) + ".v"
+
+    # 2. start writing to file
+    # if file does not exisy, create and open the file
+    if form == 0:
+        print("pin mux file " + pin_mux_v_path + "/TC-F-" + fileportnum(str(num)) + ".v" + " created.")
+        file = open(pin_mux_path, "w+")
+        file.write("initial begin\n" + "    tsk_testcase;\n" + "end\n\n" + "task tsk_testcase;\n" + "begin\n")
+    else:
+        file = open(pin_mux_path, "a")
+
+    # if it is in the format for GPIO ports
+    if form == 0 and func_form == 0:
+        file.write("    //{{{ function 0\n")
+        file.write(
+            "\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+        file.write("    //}}}\n\n")
+
+    # if it is in the format for I/O functions
+    elif form == 1:
+        xx = num
+        SIGNAL_NAME = string
+        file.write("    //{{{ function 1\n")
+        file.write(
+            "\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+        file.write("    //}}}\n\n")
+
+    # if it is in the format for normal functions
+    elif form == 2:
+        xx = num
+        SIGNAL_NAME = string
+        file.write("    //{{{ function 2\n")
+        file.write(
+            "\n---------------CONTENT THAT DEMONSTRATE THE FUNCTION IS PRESERVED AND CONTENT BELOW ARE DELETED FOR CONFIDENTIAL REASONS---------------\n")
+        file.write("    //}}}\n\n")
+
+    # if it is the last section of the file
+    elif form == 3:
+        file.write("\nend\n" + "endtask")
+
+
+# ----------------------------------------------------Part 4. Main------------------------------------------------------
+# get GPIO ports and perform operation on them separately
+for i in range(0, 44):
+    getpinmuxlist(str(i))
